@@ -1,6 +1,6 @@
 [submodule "train-ticket"]
 	path = train-ticket
-	url = https://github.com/xlab-uiuc/train-ticket
+	url = git@github.com:vic-lsh/train-ticket.git
 [submodule "flight-ticket"]
 	path = flight-ticket
 	url = https://github.com/xlab-uiuc/flight-ticket
