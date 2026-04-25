@@ -6,7 +6,7 @@
 	url = https://github.com/xlab-uiuc/flight-ticket
 [submodule "astronomy-shop"]
 	path = astronomy-shop
-	url = https://github.com/xlab-uiuc/opentelemetry-helm-charts
+	url = git@github.com:vic-lsh/opentelemetry-helm-charts.git
 [submodule "FleetCast"]
 	path = FleetCast
 	url = https://github.com/lilygn/FleetCast
