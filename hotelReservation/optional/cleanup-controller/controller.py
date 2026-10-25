@@ -1,9 +1,10 @@
 """Reconcile the reservation cleanup token with the controller's own API identity."""
+
 import json
 import os
-from pathlib import Path
 import ssl
 import time
+from pathlib import Path
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
@@ -25,12 +26,21 @@ def reconcile(api, namespace: str) -> bool:
     finalizers = metadata.get("finalizers", [])
     if not metadata.get("deletionTimestamp") or FINALIZER not in finalizers:
         return False
-    api(path, "PATCH", {"metadata": {
-        "resourceVersion": metadata["resourceVersion"],
-        "finalizers": [value for value in finalizers if value != FINALIZER],
-    }})
-    api(f"/apis/apps/v1/namespaces/{namespace}/deployments/cleanup-controller", "PATCH", {
-        "metadata": {"annotations": {COMPLETION: time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}}})
+    api(
+        path,
+        "PATCH",
+        {
+            "metadata": {
+                "resourceVersion": metadata["resourceVersion"],
+                "finalizers": [value for value in finalizers if value != FINALIZER],
+            }
+        },
+    )
+    api(
+        f"/apis/apps/v1/namespaces/{namespace}/deployments/cleanup-controller",
+        "PATCH",
+        {"metadata": {"annotations": {COMPLETION: time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}}},
+    )
     return True
 
 
@@ -42,10 +52,15 @@ def main() -> None:
 
     def api(path, method="GET", body=None):
         # Re-read the projected token to support Kubernetes token rotation.
-        request = Request(endpoint + path, method=method,
-                          data=None if body is None else json.dumps(body).encode(),
-                          headers={"Authorization": "Bearer " + (credentials / "token").read_text().strip(),
-                                   "Content-Type": "application/merge-patch+json"})
+        request = Request(
+            endpoint + path,
+            method=method,
+            data=None if body is None else json.dumps(body).encode(),
+            headers={
+                "Authorization": "Bearer " + (credentials / "token").read_text().strip(),
+                "Content-Type": "application/merge-patch+json",
+            },
+        )
         with urlopen(request, context=context, timeout=10) as response:
             return json.load(response)
 

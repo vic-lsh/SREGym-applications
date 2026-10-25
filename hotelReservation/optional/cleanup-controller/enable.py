@@ -1,4 +1,5 @@
 """Materialize the optional component into the plain-manifest hotel installation."""
+
 import argparse
 import json
 from pathlib import Path
@@ -6,9 +7,14 @@ from pathlib import Path
 
 def manifests(component: Path, namespace: str) -> list[dict]:
     objects = json.loads((component / "resources.json").read_text())["items"]
-    objects.append({"apiVersion": "v1", "kind": "ConfigMap",
-                    "metadata": {"name": "cleanup-controller-script"},
-                    "data": {"controller.py": (component / "controller.py").read_text()}})
+    objects.append(
+        {
+            "apiVersion": "v1",
+            "kind": "ConfigMap",
+            "metadata": {"name": "cleanup-controller-script"},
+            "data": {"controller.py": (component / "controller.py").read_text()},
+        }
+    )
     for obj in objects:
         if obj["kind"] not in {"ClusterRole", "ClusterRoleBinding"}:
             obj["metadata"]["namespace"] = namespace
