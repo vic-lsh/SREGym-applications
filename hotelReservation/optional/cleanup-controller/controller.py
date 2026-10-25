@@ -26,6 +26,9 @@ def reconcile(api, namespace: str) -> bool:
     finalizers = metadata.get("finalizers", [])
     if not metadata.get("deletionTimestamp") or FINALIZER not in finalizers:
         return False
+    deployment = f"/apis/apps/v1/namespaces/{namespace}/deployments/cleanup-controller"
+    # Completion belongs to this token attempt, never a previous cleanup.
+    api(deployment, "PATCH", {"metadata": {"annotations": {COMPLETION: None}}})
     api(
         path,
         "PATCH",
@@ -37,7 +40,7 @@ def reconcile(api, namespace: str) -> bool:
         },
     )
     api(
-        f"/apis/apps/v1/namespaces/{namespace}/deployments/cleanup-controller",
+        deployment,
         "PATCH",
         {"metadata": {"annotations": {COMPLETION: time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}}},
     )

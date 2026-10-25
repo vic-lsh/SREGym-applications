@@ -32,8 +32,9 @@ def test_controller_only_removes_its_finalizer_and_records_completion():
         return {}
 
     assert controller.reconcile(api, "hotel-reservation")
-    assert calls[1][2] == {"metadata": {"resourceVersion": "12", "finalizers": ["other/owner"]}}
-    assert controller.COMPLETION in calls[2][2]["metadata"]["annotations"]
+    assert calls[1][2] == {"metadata": {"annotations": {controller.COMPLETION: None}}}
+    assert calls[2][2] == {"metadata": {"resourceVersion": "12", "finalizers": ["other/owner"]}}
+    assert controller.COMPLETION in calls[3][2]["metadata"]["annotations"]
 
 
 def test_forbidden_cannot_claim_completion():
@@ -46,6 +47,8 @@ def test_forbidden_cannot_claim_completion():
             return {
                 "metadata": {"resourceVersion": "1", "deletionTimestamp": "now", "finalizers": [controller.FINALIZER]}
             }
+        if "/deployments/" in path:
+            return {}
         raise HTTPError(path, 403, "Forbidden", {}, None)
 
     try:
@@ -54,7 +57,7 @@ def test_forbidden_cannot_claim_completion():
         assert exc.code == 403
     else:
         raise AssertionError("403 must remain observable")
-    assert calls == ["GET", "PATCH"]
+    assert calls == ["GET", "PATCH", "PATCH"]
 
 
 def test_idle_controller_does_not_write():
@@ -89,3 +92,30 @@ def test_optional_component_materializes_as_plain_source_manifests(tmp_path):
     assert (
         next(obj for obj in objects if obj["kind"] == "ClusterRoleBinding")["subjects"][0]["namespace"] == "hotel-lane"
     )
+
+
+def test_a_new_blocked_token_cannot_reuse_the_previous_completion():
+    controller = load_controller()
+    annotations = {controller.COMPLETION: "previous-token", "other/owner": "retained"}
+
+    def api(path, method="GET", body=None):
+        if method == "GET":
+            return {
+                "metadata": {"resourceVersion": "2", "deletionTimestamp": "now", "finalizers": [controller.FINALIZER]}
+            }
+        if "/deployments/" in path:
+            for key, value in body["metadata"]["annotations"].items():
+                if value is None:
+                    annotations.pop(key, None)
+                else:
+                    annotations[key] = value
+            return {}
+        raise HTTPError(path, 403, "Forbidden", {}, None)
+
+    try:
+        controller.reconcile(api, "hotel-reservation")
+    except HTTPError as exc:
+        assert exc.code == 403
+    else:
+        raise AssertionError("blocked cleanup unexpectedly succeeded")
+    assert annotations == {"other/owner": "retained"}
