@@ -62,3 +62,18 @@ def test_manifest_contains_only_source_objects():
     assert all("platform.io/injected" not in o["metadata"].get("labels", {}) for o in objects)
     deployment = next(o for o in objects if o["kind"] == "Deployment")
     assert deployment["spec"]["template"]["spec"]["serviceAccountName"] == "cleanup-controller"
+
+
+def test_optional_component_materializes_as_plain_source_manifests(tmp_path):
+    import shutil
+    import runpy
+    source = tmp_path / 'hotel'
+    shutil.copytree(ROOT, source / 'optional/cleanup-controller')
+    (source/'kubernetes').mkdir()
+    enable = runpy.run_path(str(ROOT/'enable.py'))['enable']
+    target = enable(source, 'hotel-lane')
+    objects = [json.loads(document) for document in target.read_text().split('\n---\n')]
+    assert len(objects) == 5
+    assert all(obj['metadata'].get('namespace') == 'hotel-lane'
+               for obj in objects if obj['kind'] not in {'ClusterRole', 'ClusterRoleBinding'})
+    assert next(obj for obj in objects if obj['kind'] == 'ClusterRoleBinding')['subjects'][0]['namespace'] == 'hotel-lane'
