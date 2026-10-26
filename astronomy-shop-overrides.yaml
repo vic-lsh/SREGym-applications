@@ -1,0 +1,8 @@
+# App telemetry must not recursively import the node mount namespace.
+opentelemetry-collector:
+  extraEnvs:
+  - name: GOMAXPROCS
+    value: '2'
+  presets:
+    hostMetrics:
+      enabled: false
