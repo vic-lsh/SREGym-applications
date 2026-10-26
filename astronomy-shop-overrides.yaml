@@ -1,0 +1,7 @@
+# The collector otherwise sizes Go GC workers from the shared host CPU count.
+# Runtime parallelism is source configuration; no Kubernetes resource or Go
+# memory limit changes. Keep this overlay separate from the upstream chart pin.
+opentelemetry-collector:
+  extraEnvs:
+    - name: GOMAXPROCS
+      value: "2"
