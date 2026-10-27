@@ -62,3 +62,12 @@ Read the Readme file in Kubernetes directory.
 ### Questions and contact
 
 You are welcome to submit a pull request if you find a bug or have extended the application in an interesting way. For any questions please contact us at: <microservices-bench-L@list.cornell.edu>
+
+### Source-owned MongoDB bootstrap configuration
+
+Deploy the Kubernetes application with `kubectl apply -k kubernetes`. The
+Kustomization declares `mongo-geo-script` and `mongo-rate-script` from the tracked
+`kubernetes/scripts/k8s-{geo,rate}-mongo.sh` files. Stable ConfigMap names preserve
+the MongoDB volume references and allow source-based restoration after deletion.
+The bootstrap scripts have one source owner; they are no longer separate files
+at the application root. `kubectl delete -k kubernetes` removes the same objects.

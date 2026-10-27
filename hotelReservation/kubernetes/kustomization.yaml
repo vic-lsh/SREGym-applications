@@ -1,0 +1,57 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- consul/consul-deployment.yaml
+- consul/consul-service.yaml
+- frontend/frontend-deployment.yaml
+- frontend/frontend-service.yaml
+- geo/geo-deployment.yaml
+- geo/geo-pvc.yaml
+- geo/geo-service.yaml
+- geo/mongodb-geo-deployment.yaml
+- geo/mongodb-geo-service.yaml
+- jaeger/jaeger-deployment.yaml
+- jaeger/jaeger-out.yaml
+- jaeger/jaeger-service.yaml
+- profile/memcached-profile-deployment.yaml
+- profile/memcached-profile-service.yaml
+- profile/mongodb-profile-deployment.yaml
+- profile/mongodb-profile-service.yaml
+- profile/profile-deployment.yaml
+- profile/profile-pvc.yaml
+- profile/profile-service.yaml
+- rate/memcached-rate-deployment.yaml
+- rate/memcached-rate-service.yaml
+- rate/mongodb-rate-deployment.yaml
+- rate/mongodb-rate-service.yaml
+- rate/rate-deployment.yaml
+- rate/rate-pvc.yaml
+- rate/rate-service.yaml
+- reccomend/mongodb-recommendation-deployment.yaml
+- reccomend/mongodb-recommendation-service.yaml
+- reccomend/recommendation-deployment.yaml
+- reccomend/recommendation-pvc.yaml
+- reccomend/recommendation-service.yaml
+- reserve/memcached-reservation-deployment.yaml
+- reserve/memcached-reservation-service.yaml
+- reserve/mongodb-reservation-deployment.yaml
+- reserve/mongodb-reservation-service.yaml
+- reserve/reservation-deployment.yaml
+- reserve/reservation-pvc.yaml
+- reserve/reservation-service.yaml
+- search/search-deployment.yaml
+- search/search-service.yaml
+- user/mongodb-user-deployment.yaml
+- user/mongodb-user-service.yaml
+- user/user-deployment.yaml
+- user/user-pvc.yaml
+- user/user-service.yaml
+configMapGenerator:
+- name: mongo-geo-script
+  files:
+  - scripts/k8s-geo-mongo.sh
+- name: mongo-rate-script
+  files:
+  - scripts/k8s-rate-mongo.sh
+generatorOptions:
+  disableNameSuffixHash: true
