@@ -326,8 +326,11 @@ void UserHandler::RegisterUser(
     counter_hex = std::string(3 - counter_hex.size(), '0') + counter_hex;
   }
   std::string user_id_str = _machine_id + timestamp_hex + counter_hex;
-  int64_t user_id = stoul(user_id_str, nullptr, 16) & 0x7FFFFFFFFFFFFFFF;
-  ;
+  // The nginx Lua handlers read user_id from the login token with tonumber(), an
+  // IEEE double, which holds integers exactly only up to 2^53. Keep the id (the
+  // 40-bit millisecond and the 12-bit per-millisecond counter, plus one machine
+  // bit) below that, or users registered in one millisecond round onto each other.
+  int64_t user_id = stoul(user_id_str, nullptr, 16) & 0x1FFFFFFFFFFFFF;
   LOG(debug) << "The user_id of the request " << req_id << " is " << user_id;
 
   // Store user info into mongodb
